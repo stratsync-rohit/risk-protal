@@ -9,10 +9,10 @@ export const Route = createFileRoute("/_authed/dashboard")({
 });
 
 function DashboardPage() {
+  const navigate = useNavigate();
   const matches = useMatches();
   const hasChild = matches.some((m) => m.routeId === "/_authed/dashboard/$industry");
   if (hasChild) return <Outlet />;
-  const navigate = useNavigate();
   const risks = useRiskStore((s) => s.risks);
   const count = (ind: string) =>
     risks.filter((r) => r.industry === ind && r.status !== "Sent").length;
