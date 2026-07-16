@@ -1,41 +1,39 @@
-import { useEffect, useState } from "react";
-import {
-  createFileRoute,
-  Outlet,
-  useNavigate,
-} from "@tanstack/react-router";
+import { useEffect } from "react";
+import { createFileRoute, Navigate, Outlet, redirect } from "@tanstack/react-router";
 import { Navbar } from "@/components/Navbar";
-import { useAuthStore } from "@/lib/auth-store";
+import { isAllowedEmail, useAuthStore } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/_authed")({
+  beforeLoad: () => {
+    if (typeof window === "undefined") return;
+
+    const auth = useAuthStore.getState();
+    if (!auth.hydrated) auth.hydrate();
+
+    const { token, user } = useAuthStore.getState();
+    if (!token || !isAllowedEmail(user?.email)) {
+      throw redirect({ to: "/", replace: true });
+    }
+  },
   component: AuthedLayout,
 });
 
 function AuthedLayout() {
-  const navigate = useNavigate();
-  const { token, hydrated, hydrate } = useAuthStore();
-  const [checked, setChecked] = useState(false);
+  const { token, user, hydrated, hydrate } = useAuthStore();
 
   useEffect(() => {
     if (!hydrated) hydrate();
   }, [hydrated, hydrate]);
 
-  useEffect(() => {
-    if (!hydrated) return;
-    if (!token) {
-      navigate({ to: "/login", replace: true });
-      return;
-    }
-    setChecked(true);
-  }, [hydrated, token, navigate]);
-
-  if (!checked) {
+  if (!hydrated) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-background">
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
       </div>
     );
   }
+
+  if (!token || !isAllowedEmail(user?.email)) return <Navigate to="/" replace />;
 
   return (
     <div className="min-h-screen bg-background">
