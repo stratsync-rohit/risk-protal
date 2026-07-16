@@ -1,4 +1,4 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createFileRoute, useNavigate, Outlet, useMatches } from "@tanstack/react-router";
 import { Package, Ship } from "lucide-react";
 import { IndustryCard } from "@/components/IndustryCard";
 import { useRiskStore } from "@/lib/risk-store";
