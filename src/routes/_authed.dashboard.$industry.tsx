@@ -36,6 +36,7 @@ export const Route = createFileRoute("/_authed/dashboard/$industry")({
 
 function IndustryRisksPage() {
   const { industry } = Route.useParams();
+  const industryKey = industry as Industry;
   const risks = useRiskStore((s) => s.risks);
   const [severity, setSeverity] = useState<Severity | "all">("all");
 
