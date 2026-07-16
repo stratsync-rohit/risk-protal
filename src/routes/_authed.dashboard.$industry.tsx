@@ -43,12 +43,12 @@ function IndustryRisksPage() {
   const filtered = useMemo(
     () =>
       risks
-        .filter((r) => r.industry === industry)
+        .filter((r) => r.industry === industryKey)
         .filter((r) => (severity === "all" ? true : r.severity === severity)),
     [risks, industry, severity],
   );
 
-  const label = INDUSTRY_LABELS[industry];
+  const label = INDUSTRY_LABELS[industryKey];
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-10 sm:px-6 lg:px-8">
