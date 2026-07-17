@@ -21,7 +21,6 @@ npm run build
 
 ```text
 risk-protal/
-├── index.html             # HTML template/reference
 ├── public/                # Static files served from /
 ├── src/
 │   ├── components/        # Reusable feature and UI components
@@ -41,6 +40,17 @@ risk-protal/
 └── vite.config.ts
 ```
 
-TanStack Start renders the real document shell from
-`src/layouts/AppLayout.tsx`. Unlike a client-only Vite SPA, it injects the
-client scripts during SSR, so no manual `main.tsx` bootstrap is needed.
+TanStack Start renders the HTML document shell from
+`src/layouts/AppLayout.tsx`. Unlike a client-only Vite SPA, this project must
+not have a root `index.html` or a manual `main.tsx`: Nitro generates the
+renderer and injects the client scripts during SSR.
+
+## Deploy to Vercel
+
+The Nitro preset is pinned to `vercel`, and `npm run build` generates the
+Vercel Build Output API bundle in `.vercel/output`.
+
+In Vercel project settings, use this project as the Root Directory and keep the
+build command as `npm run build`. Add every `VITE_FIREBASE_*` key from
+`.env.example` to the Production and Preview environments, then redeploy. These
+public Firebase values are embedded into the browser bundle at build time.
