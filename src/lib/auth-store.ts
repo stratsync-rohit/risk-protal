@@ -1,8 +1,17 @@
 import { create } from "zustand";
 import type { User } from "./types";
 
-export const isAllowedEmail = (email: string | undefined) =>
+const TOKEN_STORAGE_KEY = "rs_token";
+const USER_STORAGE_KEY = "rs_user";
+
+export const isAllowedEmail = (email: string | null | undefined): email is string =>
   email?.trim().toLowerCase().endsWith("@stratsync.ai") === true;
+
+function clearStoredAuth() {
+  if (typeof window === "undefined") return;
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+  localStorage.removeItem(USER_STORAGE_KEY);
+}
 
 interface AuthState {
   user: User | null;
@@ -20,38 +29,35 @@ export const useAuthStore = create<AuthState>((set) => ({
   hydrate: () => {
     if (typeof window === "undefined") return;
     try {
-      const token = localStorage.getItem("rs_token");
-      const userRaw = localStorage.getItem("rs_user");
+      const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+      const userRaw = localStorage.getItem(USER_STORAGE_KEY);
       if (token && userRaw) {
         const user = JSON.parse(userRaw) as User;
         if (isAllowedEmail(user.email)) {
           set({ token, user, hydrated: true });
           return;
         }
-        localStorage.removeItem("rs_token");
-        localStorage.removeItem("rs_user");
       }
     } catch {
       /* ignore */
     }
-    set({ hydrated: true });
+    clearStoredAuth();
+    set({ token: null, user: null, hydrated: true });
   },
   login: (user, token) => {
     if (!isAllowedEmail(user.email)) {
+      clearStoredAuth();
       set({ user: null, token: null, hydrated: true });
       return;
     }
     if (typeof window !== "undefined") {
-      localStorage.setItem("rs_token", token);
-      localStorage.setItem("rs_user", JSON.stringify(user));
+      localStorage.setItem(TOKEN_STORAGE_KEY, token);
+      localStorage.setItem(USER_STORAGE_KEY, JSON.stringify(user));
     }
     set({ user, token, hydrated: true });
   },
   logout: () => {
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("rs_token");
-      localStorage.removeItem("rs_user");
-    }
+    clearStoredAuth();
     set({ user: null, token: null });
   },
 }));

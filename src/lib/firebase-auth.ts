@@ -8,8 +8,7 @@ import {
   signInWithPopup,
   signOut,
 } from "firebase/auth";
-
-const ALLOWED_EMAIL_DOMAIN = "@stratsync.ai";
+import { isAllowedEmail } from "./auth-store";
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -43,7 +42,7 @@ export async function signInWithGoogle(remember: boolean) {
   const result = await signInWithPopup(auth, provider);
   const email = result.user.email?.trim().toLowerCase();
 
-  if (!email?.endsWith(ALLOWED_EMAIL_DOMAIN)) {
+  if (!isAllowedEmail(email)) {
     await signOut(auth);
     throw new Error("Access is restricted to @stratsync.ai email accounts.");
   }

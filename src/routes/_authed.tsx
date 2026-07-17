@@ -9,8 +9,8 @@ export const Route = createFileRoute("/_authed")({
     const auth = useAuthStore.getState();
     if (!auth.hydrated) auth.hydrate();
 
-    const { token, user } = useAuthStore.getState();
-    if (!token || !isAllowedEmail(user?.email)) {
+    const { hydrated, token, user } = useAuthStore.getState();
+    if (!hydrated || !token || !isAllowedEmail(user?.email)) {
       throw redirect({ to: "/", replace: true });
     }
   },
