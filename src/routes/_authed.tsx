@@ -1,6 +1,5 @@
-import { useEffect } from "react";
-import { createFileRoute, Navigate, Outlet, redirect } from "@tanstack/react-router";
-import { Navbar } from "@/components/Navbar";
+import { createFileRoute, redirect } from "@tanstack/react-router";
+import { AuthenticatedLayout } from "@/layouts/AuthenticatedLayout";
 import { isAllowedEmail, useAuthStore } from "@/lib/auth-store";
 
 export const Route = createFileRoute("/_authed")({
@@ -15,30 +14,5 @@ export const Route = createFileRoute("/_authed")({
       throw redirect({ to: "/", replace: true });
     }
   },
-  component: AuthedLayout,
+  component: AuthenticatedLayout,
 });
-
-function AuthedLayout() {
-  const { token, user, hydrated, hydrate } = useAuthStore();
-
-  useEffect(() => {
-    if (!hydrated) hydrate();
-  }, [hydrated, hydrate]);
-
-  if (!hydrated) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-background">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
-      </div>
-    );
-  }
-
-  if (!token || !isAllowedEmail(user?.email)) return <Navigate to="/" replace />;
-
-  return (
-    <div className="min-h-screen bg-background">
-      <Navbar />
-      <Outlet />
-    </div>
-  );
-}
