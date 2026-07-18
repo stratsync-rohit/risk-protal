@@ -55,11 +55,14 @@ export function RiskCard({ risk }: { risk: Risk }) {
 
       <h3 className="mt-4 text-base font-semibold leading-snug tracking-tight">{risk.title}</h3>
       <p className="mt-1.5 line-clamp-3 text-sm text-muted-foreground">{risk.description}</p>
+      <p className="mt-2 font-mono text-xs text-muted-foreground">{risk.id}</p>
 
-      <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
-        <Clock className="h-3.5 w-3.5" />
-        Detected {formatDate(risk.detectedAt)}
-      </div>
+      {risk.detectedAt && (
+        <div className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground">
+          <Clock className="h-3.5 w-3.5" />
+          Detected {formatDate(risk.detectedAt)}
+        </div>
+      )}
 
       {risk.sentVia && risk.sentVia.length > 0 && (
         <div className="mt-3 flex flex-wrap gap-1.5">

@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ShieldOff } from "lucide-react";
+import { AlertCircle, LoaderCircle, ShieldOff } from "lucide-react";
 import {
   Breadcrumb,
   BreadcrumbItem,
@@ -17,6 +17,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { RiskCard } from "@/components/RiskCard";
+import { Button } from "@/components/ui/button";
 import { useRiskStore } from "@/lib/risk-store";
 import { INDUSTRY_LABELS, type Industry, type Severity } from "@/lib/types";
 
@@ -27,7 +28,15 @@ type IndustryRisksPageProps = {
 export function IndustryRisksPage({ industry }: IndustryRisksPageProps) {
   const industryKey = industry;
   const risks = useRiskStore((s) => s.risks);
+  const isLoading = useRiskStore((s) => s.isLoading);
+  const hasLoaded = useRiskStore((s) => s.hasLoaded);
+  const error = useRiskStore((s) => s.error);
+  const fetchRisks = useRiskStore((s) => s.fetchRisks);
   const [severity, setSeverity] = useState<Severity | "all">("all");
+
+  useEffect(() => {
+    if (!hasLoaded) void fetchRisks();
+  }, [fetchRisks, hasLoaded]);
 
   const filtered = useMemo(
     () =>
@@ -78,7 +87,20 @@ export function IndustryRisksPage({ industry }: IndustryRisksPageProps) {
         </div>
       </div>
 
-      {filtered.length === 0 ? (
+      {isLoading ? (
+        <div className="mt-16 flex items-center justify-center gap-2 py-16 text-sm text-muted-foreground">
+          <LoaderCircle className="h-5 w-5 animate-spin" /> Loading risks…
+        </div>
+      ) : error ? (
+        <div className="mt-12 flex flex-col items-center justify-center rounded-xl border border-destructive/30 bg-destructive/5 py-12 text-center">
+          <AlertCircle className="h-6 w-6 text-destructive" />
+          <h3 className="mt-3 text-base font-semibold">Could not load industry risks</h3>
+          <p className="mt-1 text-sm text-muted-foreground">{error}</p>
+          <Button className="mt-4" variant="outline" onClick={() => void fetchRisks()}>
+            Retry
+          </Button>
+        </div>
+      ) : filtered.length === 0 ? (
         <div className="mt-16 flex flex-col items-center justify-center rounded-xl border border-dashed border-border/70 py-16 text-center">
           <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted text-muted-foreground">
             <ShieldOff className="h-5 w-5" />

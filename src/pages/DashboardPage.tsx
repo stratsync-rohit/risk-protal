@@ -1,11 +1,22 @@
+import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
-import { Package, Ship } from "lucide-react";
+import { AlertCircle, LoaderCircle, Package, Ship } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { IndustryCard } from "@/components/IndustryCard";
 import { useRiskStore } from "@/lib/risk-store";
 
 export function DashboardPage() {
   const navigate = useNavigate();
   const risks = useRiskStore((s) => s.risks);
+  const isLoading = useRiskStore((s) => s.isLoading);
+  const hasLoaded = useRiskStore((s) => s.hasLoaded);
+  const error = useRiskStore((s) => s.error);
+  const fetchRisks = useRiskStore((s) => s.fetchRisks);
+
+  useEffect(() => {
+    if (!hasLoaded) void fetchRisks();
+  }, [fetchRisks, hasLoaded]);
+
   const count = (ind: string) =>
     risks.filter((r) => r.industry === ind && r.status !== "Sent").length;
 
@@ -21,6 +32,23 @@ export function DashboardPage() {
           channels.
         </p>
       </div>
+
+      {isLoading && (
+        <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
+          <LoaderCircle className="h-4 w-4 animate-spin" /> Loading industry risks…
+        </div>
+      )}
+
+      {error && (
+        <div className="mb-6 flex flex-wrap items-center justify-between gap-3 rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm text-destructive">
+          <span className="flex items-center gap-2">
+            <AlertCircle className="h-4 w-4" /> {error}
+          </span>
+          <Button variant="outline" size="sm" onClick={() => void fetchRisks()}>
+            Retry
+          </Button>
+        </div>
+      )}
 
       <div className="grid gap-6 md:grid-cols-2">
         <IndustryCard

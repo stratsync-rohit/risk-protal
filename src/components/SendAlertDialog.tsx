@@ -9,7 +9,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { sendToSlack, sendToTeams } from "@/lib/api";
+import { triggerAlert, type AlertChannel } from "@/lib/api";
 import { useRiskStore } from "@/lib/risk-store";
 import type { Risk } from "@/lib/types";
 
@@ -20,17 +20,17 @@ interface Props {
 }
 
 export function SendAlertDialog({ open, onOpenChange, risk }: Props) {
-  const [loading, setLoading] = useState<null | "slack" | "teams">(null);
+  const [loading, setLoading] = useState<AlertChannel | null>(null);
   const markSent = useRiskStore((s) => s.markSent);
 
-  const send = async (channel: "slack" | "teams") => {
+  const send = async (channel: AlertChannel) => {
     setLoading(channel);
     try {
-      const fn = channel === "slack" ? sendToSlack : sendToTeams;
-      const res = await fn(risk.id);
-      if (!res.success) throw new Error("Delivery failed");
+      const response = await triggerAlert(risk.id, channel);
       markSent(risk.id, channel);
-      toast.success(`Alert sent to ${channel === "slack" ? "Slack" : "Microsoft Teams"}`);
+      toast.success(
+        response.message || `Alert sent to ${channel === "slack" ? "Slack" : "Microsoft Teams"}`,
+      );
       onOpenChange(false);
     } catch (e) {
       toast.error(e instanceof Error ? e.message : "Failed to send alert");

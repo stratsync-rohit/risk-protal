@@ -8,7 +8,7 @@ export interface Risk {
   title: string;
   description: string;
   severity: Severity;
-  detectedAt: string;
+  detectedAt?: string;
   status: RiskStatus;
   sentVia?: ("slack" | "teams")[];
 }
