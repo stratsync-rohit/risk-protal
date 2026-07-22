@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import {
   AlertTriangle,
   CheckCircle2,
-  ChevronDown,
   Clock,
   Loader2,
   MessageCircle,
@@ -14,11 +13,12 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { sendAlertToChannel } from "@/services/sendAlert";
 import type { AlertDestination } from "@/services/sendAlert";
@@ -45,7 +45,7 @@ type SendStatus = {
 };
 
 export function RiskCard({ risk }: { risk: CatalogRisk }) {
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [sendStatus, setSendStatus] = useState<SendStatus | null>(null);
   const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -60,12 +60,12 @@ export function RiskCard({ risk }: { risk: CatalogRisk }) {
 
   const send = async (destination: AlertDestination) => {
     const destinationLabel = destinationLabels[destination];
-    setIsMenuOpen(false);
     setSendStatus({ destination, phase: "sending" });
 
     try {
       await sendAlertToChannel(risk.card_id, destination);
       setSendStatus({ destination, phase: "sent" });
+      setIsDialogOpen(false);
       toast.success(`Sent to ${destinationLabel}`, {
         description: `${risk.riskId} was delivered to ${destinationLabel}.`,
       });
@@ -84,8 +84,8 @@ export function RiskCard({ risk }: { risk: CatalogRisk }) {
   const activeDestinationLabel = sendStatus ? destinationLabels[sendStatus.destination] : null;
 
   return (
-    <Card className="overflow-hidden rounded-xl border-border/70 p-0 transition-shadow hover:shadow-md">
-      <div className="p-5 sm:p-6">
+    <Card className="flex h-full flex-col overflow-hidden rounded-xl border-border/70 p-0 transition-shadow hover:shadow-md">
+      <div className="flex-1 p-5 sm:p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-start gap-3">
             <div
@@ -142,40 +142,77 @@ export function RiskCard({ risk }: { risk: CatalogRisk }) {
             <Clock className="h-3.5 w-3.5" /> Detected {risk.detectedAt}
           </span>
         </div>
-        <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
-          <DropdownMenuTrigger asChild>
-            <Button
-              disabled={isBusy}
-              className="min-w-40"
-              aria-haspopup="menu"
-              aria-expanded={isMenuOpen}
-            >
-              {sendStatus?.phase === "sending" ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending to{" "}
-                  {activeDestinationLabel}...
-                </>
-              ) : sendStatus?.phase === "sent" ? (
-                <>
-                  <CheckCircle2 className="mr-2 h-4 w-4" /> Sent to {activeDestinationLabel}
-                </>
-              ) : (
-                <>
-                  <Send className="mr-2 h-4 w-4" /> Send Alert
-                  <ChevronDown className="ml-2 h-4 w-4" />
-                </>
-              )}
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-44">
-            <DropdownMenuItem onSelect={() => void send("teams")}>
-              <MessagesSquare /> Send to Teams
-            </DropdownMenuItem>
-            <DropdownMenuItem onSelect={() => void send("slack")}>
-              <MessageCircle /> Send to Slack
-            </DropdownMenuItem>
-          </DropdownMenuContent>
-        </DropdownMenu>
+        <Dialog
+          open={isDialogOpen}
+          onOpenChange={(open) => sendStatus?.phase !== "sending" && setIsDialogOpen(open)}
+        >
+          <Button
+            disabled={isBusy}
+            className="min-w-40"
+            aria-haspopup="dialog"
+            aria-expanded={isDialogOpen}
+            onClick={() => setIsDialogOpen(true)}
+          >
+            {sendStatus?.phase === "sending" ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending to{" "}
+                {activeDestinationLabel}...
+              </>
+            ) : sendStatus?.phase === "sent" ? (
+              <>
+                <CheckCircle2 className="mr-2 h-4 w-4" /> Sent to {activeDestinationLabel}
+              </>
+            ) : (
+              <>
+                <Send className="mr-2 h-4 w-4" /> Send Alert
+              </>
+            )}
+          </Button>
+
+          <DialogContent aria-describedby={`send-alert-description-${risk.card_id}`}>
+            <DialogHeader>
+              <DialogTitle>Send Alert</DialogTitle>
+              <DialogDescription id={`send-alert-description-${risk.card_id}`}>
+                Choose where you want to send the alert for{" "}
+                <span className="font-medium text-foreground">{risk.title}</span>.
+              </DialogDescription>
+            </DialogHeader>
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              <Button
+                variant="outline"
+                className="h-auto flex-col gap-3 border-border/70 py-6 hover:border-[#4B53BC] hover:bg-[#4B53BC]/5"
+                disabled={isBusy}
+                onClick={() => void send("teams")}
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#4B53BC] text-white">
+                  {sendStatus?.phase === "sending" && sendStatus.destination === "teams" ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <MessagesSquare className="h-5 w-5" />
+                  )}
+                </span>
+                <span>Send to Teams</span>
+              </Button>
+
+              <Button
+                variant="outline"
+                className="h-auto flex-col gap-3 border-border/70 py-6 hover:border-[#4A154B] hover:bg-[#4A154B]/5"
+                disabled={isBusy}
+                onClick={() => void send("slack")}
+              >
+                <span className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#4A154B] text-white">
+                  {sendStatus?.phase === "sending" && sendStatus.destination === "slack" ? (
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  ) : (
+                    <MessageCircle className="h-5 w-5" />
+                  )}
+                </span>
+                <span>Send to Slack</span>
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </Card>
   );

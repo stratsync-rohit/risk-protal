@@ -71,7 +71,7 @@ export function IndustryRisksPage({ industry }: IndustryRisksPageProps) {
           </p>
         </div>
       ) : (
-        <div className="mt-8 grid gap-6">
+        <div className="mt-8 grid gap-6 lg:grid-cols-2">
           {industryData.risks.map((risk) => (
             <RiskCard key={risk.card_id} risk={risk} />
           ))}
