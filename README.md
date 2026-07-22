@@ -51,6 +51,7 @@ The Nitro preset is pinned to `vercel`, and `npm run build` generates the
 Vercel Build Output API bundle in `.vercel/output`.
 
 In Vercel project settings, use this project as the Root Directory and keep the
-build command as `npm run build`. Add every `VITE_FIREBASE_*` key from
-`.env.example` to the Production and Preview environments, then redeploy. These
-public Firebase values are embedded into the browser bundle at build time.
+build command as `npm run build`. Add every `VITE_FIREBASE_*` key and
+`VITE_N8N_WEBHOOK_URL` from `.env.example` to the Production and Preview environments, then
+redeploy. These values are embedded into the browser bundle at build time. The n8n webhook must
+allow requests from the portal's browser origin.

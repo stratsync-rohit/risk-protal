@@ -7,10 +7,18 @@ interface Props {
   description: string;
   icon: LucideIcon;
   activeRisks: number;
+  isLoading?: boolean;
   onClick: () => void;
 }
 
-export function IndustryCard({ title, description, icon: Icon, activeRisks, onClick }: Props) {
+export function IndustryCard({
+  title,
+  description,
+  icon: Icon,
+  activeRisks,
+  isLoading = false,
+  onClick,
+}: Props) {
   return (
     <button
       type="button"
@@ -27,7 +35,9 @@ export function IndustryCard({ title, description, icon: Icon, activeRisks, onCl
             variant={activeRisks > 0 ? "destructive" : "secondary"}
             className="rounded-full font-medium"
           >
-            {activeRisks} Active {activeRisks === 1 ? "Risk" : "Risks"}
+            {isLoading
+              ? "Loading risks…"
+              : `${activeRisks} Active ${activeRisks === 1 ? "Risk" : "Risks"}`}
           </Badge>
         </div>
         <div className="mt-6">

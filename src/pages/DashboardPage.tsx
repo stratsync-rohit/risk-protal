@@ -1,24 +1,12 @@
-import { useEffect } from "react";
 import { useNavigate } from "@tanstack/react-router";
 import { AlertCircle, LoaderCircle, Package, Ship } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { IndustryCard } from "@/components/IndustryCard";
-import { useRiskStore } from "@/lib/risk-store";
+import { useRiskCatalog } from "@/hooks/use-risk-catalog";
 
 export function DashboardPage() {
   const navigate = useNavigate();
-  const risks = useRiskStore((s) => s.risks);
-  const isLoading = useRiskStore((s) => s.isLoading);
-  const hasLoaded = useRiskStore((s) => s.hasLoaded);
-  const error = useRiskStore((s) => s.error);
-  const fetchRisks = useRiskStore((s) => s.fetchRisks);
-
-  useEffect(() => {
-    if (!hasLoaded) void fetchRisks();
-  }, [fetchRisks, hasLoaded]);
-
-  const count = (ind: string) =>
-    risks.filter((r) => r.industry === ind && r.status !== "Sent").length;
+  const { catalog, isLoading, error, retry } = useRiskCatalog();
 
   return (
     <main className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
@@ -44,7 +32,7 @@ export function DashboardPage() {
           <span className="flex items-center gap-2">
             <AlertCircle className="h-4 w-4" /> {error}
           </span>
-          <Button variant="outline" size="sm" onClick={() => void fetchRisks()}>
+          <Button variant="outline" size="sm" onClick={() => void retry()}>
             Retry
           </Button>
         </div>
@@ -52,19 +40,27 @@ export function DashboardPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <IndustryCard
-          title="Distribution & Trading"
-          description="Currency, credit, supplier and inventory exposures across your global trading operations."
+          title={catalog?.["distribution-trading"].label ?? "Distribution & Trading"}
+          description={
+            catalog?.["distribution-trading"].description ??
+            "Currency, credit, supplier and inventory exposures across your global trading operations."
+          }
           icon={Package}
-          activeRisks={count("distribution-trading")}
+          activeRisks={catalog?.["distribution-trading"].risks.length ?? 0}
+          isLoading={isLoading}
           onClick={() =>
             navigate({ to: "/dashboard/$industry", params: { industry: "distribution-trading" } })
           }
         />
         <IndustryCard
-          title="Ship Management"
-          description="Fleet, port, maintenance and geopolitical risks affecting active voyages and charters."
+          title={catalog?.["ship-management"].label ?? "Ship Management"}
+          description={
+            catalog?.["ship-management"].description ??
+            "Fleet, port, maintenance and geopolitical risks affecting active voyages and charters."
+          }
           icon={Ship}
-          activeRisks={count("ship-management")}
+          activeRisks={catalog?.["ship-management"].risks.length ?? 0}
+          isLoading={isLoading}
           onClick={() =>
             navigate({ to: "/dashboard/$industry", params: { industry: "ship-management" } })
           }
