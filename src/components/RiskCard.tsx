@@ -1,11 +1,27 @@
-import { useState } from "react";
-import { AlertTriangle, CheckCircle2, Clock, Loader2, Send } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import {
+  AlertTriangle,
+  CheckCircle2,
+  ChevronDown,
+  Clock,
+  Loader2,
+  MessageCircle,
+  MessagesSquare,
+  Send,
+} from "lucide-react";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import { cn } from "@/lib/utils";
-import { sendAlertToTeams } from "@/services/sendAlert";
+import { sendAlertToChannel } from "@/services/sendAlert";
+import type { AlertDestination } from "@/services/sendAlert";
 import type { CatalogRisk, MetricStatus, RiskSeverity } from "@/data/riskCatalog";
 
 const severityStyles: Record<RiskSeverity, string> = {
@@ -18,25 +34,54 @@ const metricStyles: Record<MetricStatus, string> = {
   neutral: "border-border/70 bg-muted/35",
 };
 
-export function RiskCard({ risk }: { risk: CatalogRisk }) {
-  const [isSending, setIsSending] = useState(false);
-  const [wasSent, setWasSent] = useState(false);
+const destinationLabels: Record<AlertDestination, string> = {
+  teams: "Teams",
+  slack: "Slack",
+};
 
-  const send = async () => {
-    setIsSending(true);
+type SendStatus = {
+  destination: AlertDestination;
+  phase: "sending" | "sent";
+};
+
+export function RiskCard({ risk }: { risk: CatalogRisk }) {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [sendStatus, setSendStatus] = useState<SendStatus | null>(null);
+  const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(
+    () => () => {
+      if (resetTimerRef.current) {
+        clearTimeout(resetTimerRef.current);
+      }
+    },
+    [],
+  );
+
+  const send = async (destination: AlertDestination) => {
+    const destinationLabel = destinationLabels[destination];
+    setIsMenuOpen(false);
+    setSendStatus({ destination, phase: "sending" });
 
     try {
-      await sendAlertToTeams(risk.card_id);
-      setWasSent(true);
-      toast.success("Sent to Teams", {
-        description: `${risk.riskId} was delivered to Microsoft Teams.`,
+      await sendAlertToChannel(risk.card_id, destination);
+      setSendStatus({ destination, phase: "sent" });
+      toast.success(`Sent to ${destinationLabel}`, {
+        description: `${risk.riskId} was delivered to ${destinationLabel}.`,
       });
+
+      resetTimerRef.current = setTimeout(() => {
+        setSendStatus(null);
+        resetTimerRef.current = null;
+      }, 1500);
     } catch (cause) {
+      setSendStatus(null);
       toast.error(cause instanceof Error ? cause.message : "Failed to send alert");
-    } finally {
-      setIsSending(false);
     }
   };
+
+  const isBusy = sendStatus !== null;
+  const activeDestinationLabel = sendStatus ? destinationLabels[sendStatus.destination] : null;
 
   return (
     <Card className="overflow-hidden rounded-xl border-border/70 p-0 transition-shadow hover:shadow-md">
@@ -97,21 +142,40 @@ export function RiskCard({ risk }: { risk: CatalogRisk }) {
             <Clock className="h-3.5 w-3.5" /> Detected {risk.detectedAt}
           </span>
         </div>
-        <Button onClick={() => void send()} disabled={isSending} className="min-w-32">
-          {isSending ? (
-            <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending…
-            </>
-          ) : wasSent ? (
-            <>
-              <CheckCircle2 className="mr-2 h-4 w-4" /> Send Again
-            </>
-          ) : (
-            <>
-              <Send className="mr-2 h-4 w-4" /> Send Alert
-            </>
-          )}
-        </Button>
+        <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
+          <DropdownMenuTrigger asChild>
+            <Button
+              disabled={isBusy}
+              className="min-w-40"
+              aria-haspopup="menu"
+              aria-expanded={isMenuOpen}
+            >
+              {sendStatus?.phase === "sending" ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Sending to{" "}
+                  {activeDestinationLabel}...
+                </>
+              ) : sendStatus?.phase === "sent" ? (
+                <>
+                  <CheckCircle2 className="mr-2 h-4 w-4" /> Sent to {activeDestinationLabel}
+                </>
+              ) : (
+                <>
+                  <Send className="mr-2 h-4 w-4" /> Send Alert
+                  <ChevronDown className="ml-2 h-4 w-4" />
+                </>
+              )}
+            </Button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-44">
+            <DropdownMenuItem onSelect={() => void send("teams")}>
+              <MessagesSquare /> Send to Teams
+            </DropdownMenuItem>
+            <DropdownMenuItem onSelect={() => void send("slack")}>
+              <MessageCircle /> Send to Slack
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </div>
     </Card>
   );

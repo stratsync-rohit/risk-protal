@@ -31,7 +31,7 @@ export const RISK_CATALOG = {
       "Fleet, port, maintenance and geopolitical risks affecting active voyages and charters.",
     risks: [
       {
-        card_id: "ship-owner-funding-short",
+        card_id: "owner-funding-short",
         title: "Owner funding is short",
         severity: "high",
         subtitle: "V-OP-2417 · MV Ocean Pioneer",
@@ -47,7 +47,7 @@ export const RISK_CATALOG = {
         detectedAt: "08:15 IST",
       },
       {
-        card_id: "ship-dry-dock-budget",
+        card_id: "dry-dock-budget",
         title: "Dry dock budget and schedule at risk",
         severity: "critical",
         subtitle: "V-DD-1189 · MT Pacific Horizon",
@@ -70,7 +70,7 @@ export const RISK_CATALOG = {
       "Currency, credit, supplier and inventory exposures across your global trading operations.",
     risks: [
       {
-        card_id: "trading-revenue-to-cover",
+        card_id: "revenue-to-cover",
         title: "Potential To-Cover Risk Discovered",
         severity: "high",
         subtitle: "SKU 21132 · Burberry XYZ Perfume for Men",
@@ -86,7 +86,7 @@ export const RISK_CATALOG = {
         detectedAt: "9:42 AM IST",
       },
       {
-        card_id: "trading-supplier-reliability",
+        card_id: "supplier-reliability",
         title: "Supplier Reliability Risk Detected",
         severity: "high",
         subtitle: "SKU 88421 · Lavender Body Mist 100ml",
