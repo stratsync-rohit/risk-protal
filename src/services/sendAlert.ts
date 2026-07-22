@@ -6,6 +6,7 @@ type ErrorPayload = {
 
 export async function sendAlertToTeams(cardId: string): Promise<void> {
   const webhookUrl = import.meta.env.VITE_N8N_WEBHOOK_URL;
+ 
 
   if (!webhookUrl) {
     throw new Error("The Teams alert webhook is not configured");
