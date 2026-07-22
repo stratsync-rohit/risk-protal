@@ -17,7 +17,7 @@ export async function sendAlertToChannel(
   cardId: string,
   destination: AlertDestination,
 ): Promise<void> {
-  const webhookUrl =" https://stratsync-n8n-e0emdce7dta6g6dz.southeastasia-01.azurewebsites.net/webhook-test/rrm-alert-click"
+  const webhookUrl ="https://stratsync-n8n-e0emdce7dta6g6dz.southeastasia-01.azurewebsites.net/webhook/rrm-alert-click"
   console.log("Webhook URL:", webhookUrl); // Log the webhook URL for debugging
 
   if (!webhookUrl) {
