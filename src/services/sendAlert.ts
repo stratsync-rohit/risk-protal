@@ -6,6 +6,13 @@ type ErrorPayload = {
 
 export type AlertDestination = "teams" | "slack";
 
+const WEBHOOK_URLS: Record<AlertDestination, string> = {
+  teams:
+    "https://stratsync-n8n-e0emdce7dta6g6dz.southeastasia-01.azurewebsites.net/webhook/rrm-alert-click",
+  slack:
+    "https://stratsync-n8n-e0emdce7dta6g6dz.southeastasia-01.azurewebsites.net/webhook/slack-risk-notification",
+};
+
 const VALID_CARD_IDS = new Set([
   "owner-funding-short",
   "dry-dock-budget",
@@ -17,12 +24,7 @@ export async function sendAlertToChannel(
   cardId: string,
   destination: AlertDestination,
 ): Promise<void> {
-  const webhookUrl ="https://stratsync-n8n-e0emdce7dta6g6dz.southeastasia-01.azurewebsites.net/webhook/rrm-alert-click"
-  console.log("Webhook URL:", webhookUrl); // Log the webhook URL for debugging
-
-  if (!webhookUrl) {
-    throw new Error("The alert webhook is not configured");
-  }
+  const webhookUrl = WEBHOOK_URLS[destination];
 
   if (import.meta.env.DEV && !VALID_CARD_IDS.has(cardId)) {
     console.warn("Unexpected card_id sent to n8n:", cardId);
